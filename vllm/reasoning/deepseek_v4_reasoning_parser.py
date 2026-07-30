@@ -54,7 +54,7 @@ class DeepSeekV4ThinkingReasoningParser(DeepSeekR1ReasoningParser):
         super().__init__(tokenizer, *args, **kwargs)
         chat_kwargs = kwargs.get("chat_template_kwargs", {}) or {}
         self._force_nonempty_content = bool(
-            chat_kwargs.get("force_nonempty_content", False)
+            chat_kwargs.get("force_nonempty_content", True)
         )
         # Per-stream sticky flag: once the implicit end marker is observed,
         # the rest of the stream is content and the orchestrator's

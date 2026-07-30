@@ -61,7 +61,9 @@ def tokenizer() -> MagicMock:
 
 @pytest.fixture
 def parser(tokenizer) -> DeepSeekV4ThinkingReasoningParser:
-    return DeepSeekV4ThinkingReasoningParser(tokenizer)
+    return DeepSeekV4ThinkingReasoningParser(
+        tokenizer, chat_template_kwargs={"force_nonempty_content": False}
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -436,17 +438,28 @@ def test_extract_reasoning_pure_reasoning_no_marker(parser):
     assert content is None
 
 
-def test_force_nonempty_content_promotes_unclosed_thinking(tokenizer):
+def test_unclosed_thinking_promotes_content_by_default(tokenizer):
     """A direct answer after the V4 thinking prefill must not be misrouted."""
     parser = DeepSeekV4ReasoningParser(
-        tokenizer,
-        chat_template_kwargs={"thinking": True, "force_nonempty_content": True},
+        tokenizer, chat_template_kwargs={"thinking": True}
     )
 
     reasoning, content = parser.extract_reasoning("direct answer", MagicMock())
 
     assert reasoning is None
     assert content == "direct answer"
+
+
+def test_unclosed_thinking_can_preserve_reasoning_when_disabled(tokenizer):
+    parser = DeepSeekV4ReasoningParser(
+        tokenizer,
+        chat_template_kwargs={"thinking": True, "force_nonempty_content": False},
+    )
+
+    reasoning, content = parser.extract_reasoning("direct answer", MagicMock())
+
+    assert reasoning == "direct answer"
+    assert content is None
 
 
 def test_extract_reasoning_marker_with_leading_start_token(parser):

@@ -436,6 +436,19 @@ def test_extract_reasoning_pure_reasoning_no_marker(parser):
     assert content is None
 
 
+def test_force_nonempty_content_promotes_unclosed_thinking(tokenizer):
+    """A direct answer after the V4 thinking prefill must not be misrouted."""
+    parser = DeepSeekV4ReasoningParser(
+        tokenizer,
+        chat_template_kwargs={"thinking": True, "force_nonempty_content": True},
+    )
+
+    reasoning, content = parser.extract_reasoning("direct answer", MagicMock())
+
+    assert reasoning is None
+    assert content == "direct answer"
+
+
 def test_extract_reasoning_marker_with_leading_start_token(parser):
     """A leading <think> is stripped (parent behavior) before the marker split."""
     out = f"<think>reasoning here{DSML_MARKER}call"

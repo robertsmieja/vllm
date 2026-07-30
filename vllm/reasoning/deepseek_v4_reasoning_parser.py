@@ -52,6 +52,10 @@ class DeepSeekV4ThinkingReasoningParser(DeepSeekR1ReasoningParser):
 
     def __init__(self, tokenizer: PreTrainedTokenizerBase, *args, **kwargs):
         super().__init__(tokenizer, *args, **kwargs)
+        chat_kwargs = kwargs.get("chat_template_kwargs", {}) or {}
+        self._force_nonempty_content = bool(
+            chat_kwargs.get("force_nonempty_content", False)
+        )
         # Per-stream sticky flag: once the implicit end marker is observed,
         # the rest of the stream is content and the orchestrator's
         # is_reasoning_end check must return True for every subsequent delta.
@@ -250,7 +254,10 @@ class DeepSeekV4ThinkingReasoningParser(DeepSeekR1ReasoningParser):
         stripped = parts[2] if parts[1] else parts[0]
         marker = self._find_implicit_end_marker(stripped)
         if marker is None:
-            return super().extract_reasoning(model_output, request)
+            reasoning, content = super().extract_reasoning(model_output, request)
+            if self._force_nonempty_content and not content:
+                return None, reasoning
+            return reasoning, content
         _marker_str, idx = marker
         reasoning = stripped[:idx] or None
         content = stripped[idx:] or None

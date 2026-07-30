@@ -314,6 +314,13 @@ class DeepSeekV4ReasoningParser(ReasoningParser):
     ) -> tuple[str | None, str | None]:
         return self._parser.extract_reasoning(model_output, request)
 
+    def get_streaming_fallback_content(self, text: str, request):
+        """Promote an unclosed thinking-prefilled direct answer at stream end."""
+        reasoning, content = self._parser.extract_reasoning(text, request)
+        if reasoning is None:
+            return content
+        return None
+
     def extract_reasoning_streaming(
         self,
         previous_text: str,

@@ -450,6 +450,17 @@ def test_unclosed_thinking_promotes_content_by_default(tokenizer):
     assert content == "direct answer"
 
 
+def test_streaming_fallback_promotes_unclosed_thinking_by_default(tokenizer):
+    parser = DeepSeekV4ReasoningParser(
+        tokenizer, chat_template_kwargs={"thinking": True}
+    )
+
+    assert (
+        parser.get_streaming_fallback_content("direct answer", MagicMock())
+        == "direct answer"
+    )
+
+
 def test_unclosed_thinking_can_preserve_reasoning_when_disabled(tokenizer):
     parser = DeepSeekV4ReasoningParser(
         tokenizer,
